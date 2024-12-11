@@ -1,6 +1,5 @@
 from django.http import Http404
-from django.shortcuts import render
-from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from .models import Post, Category
 
@@ -14,7 +13,7 @@ def index(request):
         is_published=True,
         pub_date__lte=timezone.now(),
         category__is_published=True
-    ).order_by('-pub_date')[:5]
+    )[:5]
     return render(
         request,
         template_name='blog/index.html',
@@ -23,13 +22,11 @@ def index(request):
 
 
 def post_detail(request, post_id):
-    try:
-        post = Post.objects.select_related(
-            'category',
-            'location'
-        ).get(pk=post_id)
-    except ObjectDoesNotExist:
-        raise Http404(f"Пост с id {post_id} не найден.")
+    queryset = Post.objects.select_related(
+        'category',
+        'location'
+    ).all()
+    post = get_object_or_404(queryset, pk=post_id)
 
     if (post.pub_date > timezone.now()
             or not post.is_published
@@ -44,22 +41,20 @@ def post_detail(request, post_id):
 
 
 def category_posts(request, category_slug):
-    try:
-        category = Category.objects.get(slug=category_slug)
-    except ObjectDoesNotExist:
-        raise Http404(f"Категория с slug {category_slug} не найдена.")
+    category = get_object_or_404(Category, slug=category_slug)
 
     if not category.is_published:
         raise Http404(f"Категория с slug {category_slug} не найдена.")
 
-    posts = Post.objects.select_related(
+    posts = category.posts.select_related(
         'category',
-        'location'
+        'location',
+        'author'
     ).filter(
         is_published=True,
         pub_date__lte=timezone.now(),
-        category__slug=category_slug
-    ).order_by('-pub_date')
+        category=category
+    )
 
     return render(
         request,

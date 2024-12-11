@@ -63,11 +63,13 @@ class Post(BaseModel):
     )
     author = models.ForeignKey(
         User,
+        related_name='posts',
         on_delete=models.CASCADE,
         verbose_name='Автор публикации'
     )
     location = models.ForeignKey(
         Location,
+        related_name='posts',
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
@@ -75,12 +77,14 @@ class Post(BaseModel):
     )
     category = models.ForeignKey(
         Category,
+        related_name='posts',
         null=True,
         on_delete=models.SET_NULL,
         verbose_name='Категория'
     )
 
     class Meta:
+        ordering = ('-pub_date',)
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
 
