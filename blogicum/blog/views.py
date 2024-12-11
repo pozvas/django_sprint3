@@ -31,7 +31,9 @@ def post_detail(request, post_id):
     except ObjectDoesNotExist:
         raise Http404(f"Пост с id {post_id} не найден.")
 
-    if post.pub_date > timezone.now() or not post.is_published or not post.category.is_published:
+    if (post.pub_date > timezone.now() or
+        not post.is_published or
+        not post.category.is_published):
         raise Http404(f"Пост с id {post_id} не найден.")
 
     return render(
